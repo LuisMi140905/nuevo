@@ -26,7 +26,10 @@ public class Concurrencia : MonoBehaviour
 
     void Start()
     {
-
+        if (useSincrono) MoveSincrono();
+        if (useThread) MoveWithThread();
+        if (useTask) MovewithTask();
+        if (useCoroutine) StartCoroutine(MoveWithCoroutine());   
     }
 
     // Update is called once per frame
@@ -54,6 +57,49 @@ public class Concurrencia : MonoBehaviour
             sincronoSphere.position += Vector3.right * 0.05f;
         }
         Thread.Sleep(50);
+    }
+
+    //Movimiento con hilo secundario
+
+    void MoveWithThread()
+    {
+        new Thread(() => 
+        {
+            for (int i = 0; i <= 100; i++)
+            {
+                Thread.Sleep(50);
+                lock (mainThreadActions)
+                {
+                    mainThreadActions.Enqueue(() =>
+                    {
+                        threadSphere.position += Vector3.right * 0.05f;
+                    });
+                }
+            }
+            
+        }).Start();
+    }
+
+    //Métodos con taks asíncrono
+
+    async void MovewithTask()
+    {
+        await Task.Run(() =>
+            {
+                for (int i=0; i<= 100; i++)
+                {
+                    Thread.Sleep(50);
+
+                    lock (mainThreadActions)
+                    {
+                        mainThreadActions.Enqueue(() =>
+                        {
+                            taskSphere.position += Vector3.right * 0.05f;
+                        });
+
+                    }
+                }
+            });
     }
 
     //Corutina
